@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>PacketSpy Master</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Playfair Display&display=swap">
+
+    <link rel="shortcut icon" href="{{ url_for('static', filename='image/new.png') }}" type="image/x-icon">
+    <style>
+        /* Updated CSS styles for the table 
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #414040;
+        } 
+        */
+
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-image: url('static/image/new1.jpg');
+            background-size: cover;
+            background-repeat: no-repeat;
+        }
+
+        header {
+            background-color: #ffffff;
+            color: #000000;
+            padding: 10px;
+            text-align: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        button {
+            padding: 10px 20px;
+            background-color: #424242;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+
+        button:hover {
+            background-color: #006a7c;
+        }
+
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin-top: 20px;
+            background-color: #e0e0e0;
+            border: 1px solid #ccc;
+        }
+
+        th,
+        td {
+            border: 1px solid #dddddd;
+            text-align: left;
+            padding: 8px;
+            color: #080808;
+        }
+
+        th {
+            background-color: rgb(36, 75, 204);
+        }
+
+        tr:nth-child(even) {
+            background-color: #E0FFFF;
+            color: #ffffff;
+        }
+
+        tr:nth-child(odd) {
+            background-color: #ADD8E6;
+            color: #ffffff;
+        }
+
+        h1 {
+            font-family: 'Playfair Display', sans-serif;
+        }
+    </style>
+</head>
+
+<body>
+    <header>
+        <img src="{{ url_for('static', filename='image/new.png') }}" alt="Logo"
+            style="width: 70px; height: 70px; margin-right: 10px;">
+        <h1>FAST NUCES Packet Analyzer</h1>
+    </header>
+    <div style="text-align: center; margin-top: 20px;">
+        <select id="interfaceSelect">
+            <option value="WiFi">WiFi</option>
+            <option value="Wi-Fi">Wi-Fi</option>
+            <option value="Ethernet">Ethernet</option>
+        </select>
+        <button onclick="selectInterface()">Select Interface</button>
+        <button onclick="startCapture()">Start Capture</button>
+        <button onclick="stopCapture()">Stop Capture</button>
+        <button onclick="clearPackets()">Clear Packets</button>
+    </div>
+    <table id="packetTable">
+        <thead>
+            <tr>
+                <th>Packet Number</th>
+                <th>Time</th>
+                <th>Length</th>
+                <th>Info</th>
+                <th>Source IP</th>
+                <th>Destination IP</th>
+                <th>Source Port</th>
+                <th>Destination Port</th>
+                <th>Protocol</th>
+            </tr>
+        </thead>
+        <tbody id="packetData">
+            <!-- Packet data will be displayed here -->
+        </tbody>
+    </table>
+
+    <script>
+        function selectInterface() {
+            const selectedInterface = document.getElementById('interfaceSelect').value;
+
+            fetch(`/select_interface/${selectedInterface}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert(`Interface selected: ${selectedInterface}`);
+                    } else {
+                        alert('Failed to select interface.');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('An error occurred.');
+                });
+        }
+
+        function startCapture() {
+            fetch('/start_capture')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        setTimeout(getCapturedPackets, 1000);
+                    } else {
+                        alert('Failed to start capture.');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('An error occurred.');
+                });
+        }
+
+        function stopCapture() {
+            fetch('/stop_capture')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert('Capture stopped.');
+                    } else {
+                        alert('Failed to stop capture.');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('An error occurred.');
+                });
+        }
+
+        function clearPackets() {
+            fetch('/clear_packets')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert('Captured packets cleared.');
+                    } else {
+                        alert('Failed to clear captured packets.');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('An error occurred.');
+                });
+        }
+
+        function getCapturedPackets() {
+            fetch('/captured_packets')
+                .then(response => response.json())
+                .then(data => {
+                    const packetData = document.getElementById('packetData');
+                    packetData.innerHTML = '';
+
+                    data.forEach(packet => {
+                        const row = document.createElement('tr');
+                        const keys = ["Packet Number", "Time", "Length", "Info", "Source IP", "Destination IP", "Source Port", "Destination Port", "Protocol"];
+
+                        keys.forEach(key => {
+                            const cell = document.createElement('td');
+                            cell.textContent = packet[key];
+                            row.appendChild(cell);
+                        });
+
+                        packetData.appendChild(row);
+                    });
+
+                    setTimeout(getCapturedPackets, 1000);
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('An error occurred while fetching captured packets.');
+                });
+        }
+
+        document.addEventListener('DOMContentLoaded', getCapturedPackets);
+    </script>
+</body>
+
+</html>
